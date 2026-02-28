@@ -17,8 +17,22 @@ export abstract class BaseChannel<TConfig = unknown> {
     return false;
   }
 
+  private static readonly channelColors: Record<string, string> = {
+    telegram: "\x1b[36m",
+    discord: "\x1b[35m",
+    whatsapp: "\x1b[32m",
+    slack: "\x1b[33m",
+    email: "\x1b[34m",
+  };
+
   protected async handleMessage(input: { senderId: string; chatId: string; content: string; media?: string[]; metadata?: Record<string, unknown>; sessionKey?: string }): Promise<void> {
-    if (!this.isAllowed(input.senderId)) return;
+    const color = BaseChannel.channelColors[this.name] ?? "\x1b[0m";
+    const preview = input.content.length > 80 ? input.content.slice(0, 80) + "…" : input.content;
+    if (!this.isAllowed(input.senderId)) {
+      console.log(`[${color}${this.name}\x1b[0m] \x1b[31mBLOCKED\x1b[0m from=${input.senderId}`);
+      return;
+    }
+    console.log(`[${color}${this.name}\x1b[0m] from=${input.senderId} chat=${input.chatId} "${preview}"`);
     await this.bus.publishInbound({
       channel: this.name,
       senderId: String(input.senderId),

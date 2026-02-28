@@ -55,6 +55,13 @@ function contentType(file: string): string {
   return "application/octet-stream";
 }
 
+const METHOD_COLORS: Record<string, string> = {
+  GET: "\x1b[32m",
+  POST: "\x1b[34m",
+  PUT: "\x1b[33m",
+  DELETE: "\x1b[31m",
+};
+
 export function startDashboardServer(input: {
   agent: AgentLoop;
   cron: CronService;
@@ -70,13 +77,7 @@ export function startDashboardServer(input: {
     const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
     const pathname = url.pathname;
 
-    const methodColors: Record<string, string> = {
-      GET: "\x1b[32m",
-      POST: "\x1b[34m",
-      PUT: "\x1b[33m",
-      DELETE: "\x1b[31m",
-    };
-    const color = methodColors[method] ?? "\x1b[0m";
+    const color = METHOD_COLORS[method] ?? "\x1b[0m";
     console.log(`[gateway] ${color}${method}\x1b[0m ${pathname}`);
 
     if (method === "GET" && pathname === "/api/status") {
