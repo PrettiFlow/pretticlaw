@@ -1,0 +1,20 @@
+services:
+  pretticlaw:
+    build: .
+    container_name: pretticlaw
+    ports:
+      - "18790:18790"
+      - "6767:6767"
+    environment:
+      PROVIDER: ${PROVIDER}
+      MODEL: ${MODEL}
+      API_KEY: ${API_KEY}
+      API_BASE: ${API_BASE}
+      TEMPERATURE: ${TEMPERATURE}
+      MAX_TOKENS: ${MAX_TOKENS}
+    volumes:
+      - pretticlaw_data:/root/.pretticlaw
+    restart: unless-stopped
+
+volumes:
+  pretticlaw_data:
