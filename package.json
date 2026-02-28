@@ -1,6 +1,6 @@
 {
   "name": "pretticlaw",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Lightweight AI Assistant That Lives in Your Computer",
   "type": "module",
   "main": "dist/index.js",
