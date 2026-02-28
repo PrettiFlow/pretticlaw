@@ -1,0 +1,1567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pretticlaw Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.344.0/font/lucide.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+            /* ─── MARKDOWN IN CHAT ─── */
+            .message-bubble .markdown-body {
+              color: var(--text-primary);
+              font-size: 15px;
+              line-height: 1.7;
+            }
+            .message-bubble .markdown-body h1,
+            .message-bubble .markdown-body h2,
+            .message-bubble .markdown-body h3 {
+              color: var(--pink);
+              margin-top: 1.2em;
+              margin-bottom: 0.5em;
+              font-weight: 700;
+            }
+            .message-bubble .markdown-body h1 { font-size: 1.4em; }
+            .message-bubble .markdown-body h2 { font-size: 1.2em; }
+            .message-bubble .markdown-body h3 { font-size: 1.1em; }
+            .message-bubble .markdown-body ul,
+            .message-bubble .markdown-body ol {
+              margin: 0.5em 0 0.5em 1.2em;
+            }
+            .message-bubble .markdown-body li {
+              margin-bottom: 0.2em;
+            }
+            .message-bubble .markdown-body strong {
+              color: #fff;
+            }
+            .message-bubble .markdown-body code {
+              background: #23232a;
+              color: #ffb3d1;
+              border-radius: 4px;
+              padding: 2px 5px;
+              font-size: 0.97em;
+              font-family: 'JetBrains Mono', monospace;
+            }
+            .message-bubble .markdown-body pre {
+              background: #18181c;
+              color: #ffb3d1;
+              border-radius: 7px;
+              padding: 12px;
+              font-size: 0.97em;
+              font-family: 'JetBrains Mono', monospace;
+              overflow-x: auto;
+              margin: 1em 0;
+            }
+            .message-bubble .markdown-body blockquote {
+              border-left: 3px solid var(--pink);
+              background: #23232a;
+              color: #bdbdc7;
+              margin: 0.7em 0;
+              padding: 0.5em 1em;
+              border-radius: 6px;
+            }
+            .message-bubble .markdown-body table {
+              border-collapse: collapse;
+              margin: 1em 0;
+              width: 100%;
+            }
+            .message-bubble .markdown-body th,
+            .message-bubble .markdown-body td {
+              border: 1px solid #333;
+              padding: 6px 10px;
+            }
+            .message-bubble .markdown-body th {
+              background: #23232a;
+              color: var(--pink);
+            }
+      :root {
+        --bg-primary: #252527;
+        --bg-secondary: #272725;
+        --bg-tertiary: #2d2d2f;
+        --bg-input: #1e1e20;
+        --text-primary: #f3f3f6;
+        --text-secondary: #b9b9c5;
+        --pink: #ff5fa2;
+        --pink-dark: #e24f91;
+        --pink-glow: rgba(255,95,162,0.15);
+        --border: #3a3a3f;
+        --border-light: #4a4a50;
+        --user-bg: #3a2c3e;
+        --user-border: #5d4460;
+        --assistant-bg: #2a2a30;
+        --assistant-border: #3a3a3f;
+        --sidebar-width: 260px;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body, #root { 
+        height: 100%; 
+        background: var(--bg-primary); 
+        color: var(--text-primary); 
+        font-family: 'Sora', system-ui, sans-serif;
+        overflow: hidden;
+      }
+
+      .app { 
+        display: flex; 
+        height: 100%;
+      }
+
+      /* ─── SIDEBAR ─── */
+      .sidebar {
+        width: var(--sidebar-width);
+        min-width: var(--sidebar-width);
+        background: linear-gradient(180deg, #2b2a2d, #232326);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+
+      .sidebar.collapsed {
+        width: 0;
+        min-width: 0;
+        border-right: none;
+      }
+
+      .sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        white-space: nowrap;
+      }
+
+      .sidebar-brand {
+        font-weight: 700;
+        font-size: 17px;
+        letter-spacing: -0.3px;
+        background: linear-gradient(135deg, var(--pink), #ff8ec4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .toggle-btn {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+        font-size: 14px;
+        box-shadow: inset 0 1px 1px rgba(255,255,255,0.08);
+        flex-shrink: 0;
+      }
+
+      .toggle-btn:hover {
+        color: var(--text-primary);
+        background: var(--border);
+      }
+
+      .nav-tabs {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .nav-tab {
+        text-align: left;
+        border: 1px solid transparent;
+        color: var(--text-secondary);
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+        font-weight: 500;
+        font-family: inherit;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .nav-tab i {
+        font-size: 18px;
+        width: 20px;
+        text-align: center;
+      }
+
+      .nav-tab:hover {
+        background: rgba(255,255,255,0.04);
+        color: var(--text-primary);
+      }
+
+      .nav-tab.active {
+        background: linear-gradient(180deg, var(--pink), var(--pink-dark));
+        color: white;
+        border-color: #ea8ab7;
+        box-shadow: inset 0 2px 3px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.3), 0 2px 8px var(--pink-glow);
+      }
+
+      /* ─── MAIN CONTENT ─── */
+      .main-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-width: 0;
+      }
+
+      .top-bar {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--bg-secondary);
+      }
+
+      .sidebar-toggle {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        cursor: pointer;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        transition: all 0.2s;
+        font-size: 16px;
+        box-shadow: inset 0 1px 2px rgba(255,255,255,0.1), inset 0 -1px 2px rgba(0,0,0,0.25);
+      }
+
+      .sidebar-toggle:hover {
+        background: var(--border);
+        box-shadow: inset 0 1px 2px rgba(255,255,255,0.15), inset 0 -1px 2px rgba(0,0,0,0.3);
+      }
+
+      .top-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .content-area {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ─── CHAT VIEW ─── */
+      .chat-view {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 24px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        scroll-behavior: smooth;
+      }
+
+      .chat-messages::-webkit-scrollbar { width: 6px; }
+      .chat-messages::-webkit-scrollbar-track { background: transparent; }
+      .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+      .chat-messages::-webkit-scrollbar-thumb:hover { background: #555; }
+
+      .message {
+        display: flex;
+        gap: 12px;
+        animation: msgIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      @keyframes msgIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .message.user { justify-content: flex-end; }
+
+      .message-bubble {
+        max-width: 65%;
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 14.5px;
+        line-height: 1.6;
+        word-wrap: break-word;
+        border: 1px solid var(--border);
+      }
+
+      .message.user .message-bubble {
+        background: var(--user-bg);
+        border-color: var(--user-border);
+        border-bottom-right-radius: 4px;
+      }
+
+      .message.assistant .message-bubble {
+        background: var(--assistant-bg);
+        border-color: var(--assistant-border);
+        border-bottom-left-radius: 4px;
+      }
+
+      .message.progress .message-bubble {
+        background: transparent;
+        border: none;
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-style: italic;
+        padding: 4px 0;
+      }
+
+      .tool-hint {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-style: italic;
+        opacity: 0.8;
+      }
+
+      /* ─── TOOL CALL COLLAPSIBLE ─── */
+      .tool-call-row {
+        animation: msgIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin: 2px 0;
+      }
+
+      .tool-call-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 8px;
+        background: rgba(255,95,162,0.08);
+        border: 1px solid rgba(255,95,162,0.15);
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+        font-size: 13px;
+        color: var(--pink);
+        font-weight: 500;
+      }
+
+      .tool-call-header:hover {
+        background: rgba(255,95,162,0.14);
+        border-color: rgba(255,95,162,0.3);
+      }
+
+      .tool-call-header i {
+        font-size: 14px;
+        transition: transform 0.2s;
+      }
+
+      .tool-call-header.expanded i {
+        transform: rotate(90deg);
+      }
+
+      .tool-call-body {
+        margin-top: 6px;
+        padding: 10px 14px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      /* ─── STATUS INDICATORS ─── */
+      .status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .status-card {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px;
+        transition: border-color 0.2s;
+      }
+
+      .status-card:hover {
+        border-color: var(--border-light);
+      }
+
+      .status-card-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .status-card-header i {
+        font-size: 20px;
+        color: var(--pink);
+      }
+
+      .status-card-title {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+
+      .status-card-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .status-dot.active {
+        background: #22c55e;
+        box-shadow: 0 0 8px rgba(34,197,94,0.5);
+        animation: pulse-green 2s ease-in-out infinite;
+      }
+
+      .status-dot.inactive {
+        background: #ef4444;
+        box-shadow: 0 0 6px rgba(239,68,68,0.3);
+      }
+
+      @keyframes pulse-green {
+        0%, 100% { box-shadow: 0 0 4px rgba(34,197,94,0.3); }
+        50% { box-shadow: 0 0 14px rgba(34,197,94,0.7); }
+      }
+
+      .status-banner {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .status-banner-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .status-banner-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .status-banner-dot.active {
+        background: #22c55e;
+        box-shadow: 0 0 10px rgba(34,197,94,0.6);
+        animation: pulse-green 2s ease-in-out infinite;
+      }
+
+      .status-banner-dot.inactive {
+        background: #ef4444;
+        box-shadow: 0 0 6px rgba(239,68,68,0.3);
+      }
+
+      .status-banner-text {
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .status-banner-sub {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 2px;
+      }
+
+      /* ─── PRETTIFLOW LINK ─── */
+      .sidebar-footer {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border);
+        white-space: nowrap;
+      }
+
+      .prettiflow-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--text-secondary);
+        padding: 8px 10px;
+        border-radius: 10px;
+        transition: all 0.2s;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .prettiflow-link:hover {
+        background: rgba(255,255,255,0.04);
+        color: var(--text-primary);
+      }
+
+      .prettiflow-link img {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+      }
+
+      /* ─── CRON INTERVAL ROW ─── */
+      .interval-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+      }
+
+      .interval-row .form-group {
+        margin-bottom: 0;
+      }
+
+      .interval-row .interval-value {
+        flex: 1;
+      }
+
+      .interval-row .interval-unit {
+        width: 140px;
+        flex-shrink: 0;
+      }
+
+      /* ─── INPUT AREA ─── */
+      .chat-input-area {
+        padding: 14px 20px 22px;
+        border-top: 1px solid var(--border);
+        background: var(--bg-secondary);
+      }
+
+      .input-container {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 6px 6px 6px 16px;
+        transition: border-color 0.2s;
+      }
+
+      .input-container:focus-within {
+        border-color: var(--pink);
+        box-shadow: 0 0 0 2px var(--pink-glow);
+      }
+
+      .input-field {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--text-primary);
+        padding: 8px 0;
+        font-family: 'Sora', system-ui, sans-serif;
+        font-size: 14.5px;
+        line-height: 1.5;
+        resize: none;
+        max-height: 120px;
+        outline: none;
+      }
+
+      .input-field::placeholder {
+        color: #666;
+      }
+
+      .send-btn {
+        background: linear-gradient(180deg, var(--pink), var(--pink-dark));
+        border: 1px solid #ea8ab7;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.15s ease;
+        box-shadow: inset 0 2px 3px rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.3);
+      }
+
+      .send-btn:hover:not(:disabled) {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+        box-shadow: inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.35), 0 4px 12px var(--pink-glow);
+      }
+
+      .send-btn:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.4), inset 0 -1px 1px rgba(255,255,255,0.1);
+      }
+
+      .send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* ─── TYPING INDICATOR ─── */
+      .typing-dots { display: flex; gap: 5px; padding: 4px 0; align-items: center; }
+
+      .typing-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--pink);
+        animation: bounce 1.4s infinite;
+      }
+
+      .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+      .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+      @keyframes bounce {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+        30% { transform: translateY(-6px); opacity: 1; }
+      }
+
+      /* ─── PANELS ─── */
+      .panel {
+        padding: 24px;
+        overflow-y: auto;
+        height: 100%;
+        flex: 1;
+      }
+
+      .panel::-webkit-scrollbar { width: 6px; }
+      .panel::-webkit-scrollbar-track { background: transparent; }
+      .panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+      .panel-title {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        color: var(--text-primary);
+      }
+
+      .form-group {
+        margin-bottom: 18px;
+      }
+
+      .form-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .form-input {
+        width: 100%;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-family: 'Sora', system-ui, sans-serif;
+        font-size: 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+      }
+
+      .form-input:focus {
+        border-color: var(--pink);
+        box-shadow: 0 0 0 2px var(--pink-glow);
+      }
+
+      .form-input::placeholder { color: #555; }
+
+      /* ─── CUSTOM CHECKBOX ─── */
+      .checkbox-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+        user-select: none;
+      }
+
+      .checkbox-label input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border-light);
+        border-radius: 6px;
+        background: var(--bg-input);
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s;
+        flex-shrink: 0;
+      }
+
+      .checkbox-label input[type="checkbox"]:checked {
+        background: linear-gradient(180deg, var(--pink), var(--pink-dark));
+        border-color: var(--pink);
+        box-shadow: inset 0 1px 2px rgba(255,255,255,0.3), 0 0 8px var(--pink-glow);
+      }
+
+      .checkbox-label input[type="checkbox"]:checked::after {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 2px;
+        width: 6px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2.5px 2.5px 0;
+        transform: rotate(45deg);
+      }
+
+      .checkbox-label input[type="checkbox"]:hover {
+        border-color: var(--pink);
+      }
+
+      /* ─── BUTTONS ─── */
+      .btn-primary {
+        background: linear-gradient(180deg, var(--pink), var(--pink-dark));
+        border: 1px solid #ea8ab7;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.15s ease;
+        box-shadow: inset 0 2px 3px rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.3);
+      }
+
+      .btn-primary:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+        box-shadow: inset 0 2px 3px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.35), 0 4px 12px var(--pink-glow);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.4), inset 0 -1px 1px rgba(255,255,255,0.1);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(180deg, #3a3a41, #313137);
+        border: 1px solid var(--border-light);
+        color: var(--text-primary);
+        padding: 10px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.15s ease;
+        box-shadow: inset 0 2px 2px rgba(255,255,255,0.12), inset 0 -2px 3px rgba(0,0,0,0.3);
+      }
+
+      .btn-secondary:hover {
+        background: linear-gradient(180deg, #444, #3a3a41);
+        border-color: var(--pink);
+        transform: translateY(-1px);
+        box-shadow: inset 0 2px 2px rgba(255,255,255,0.15), inset 0 -2px 3px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2);
+      }
+
+      .btn-secondary:active {
+        transform: translateY(0);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.35), inset 0 -1px 1px rgba(255,255,255,0.05);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 20px 0;
+      }
+
+      .job-card {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        transition: border-color 0.2s;
+      }
+
+      .job-card:hover {
+        border-color: var(--border-light);
+      }
+
+      .job-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+        font-size: 15px;
+      }
+
+      .job-details {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 14px;
+        line-height: 1.6;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn-group .btn-secondary {
+        flex: 1;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+
+      /* ─── SELECT ELEMENTS ─── */
+      select, select.form-input {
+        appearance: none;
+        -webkit-appearance: none;
+        background: var(--bg-input) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23b9b9c5' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 14px center;
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        padding: 10px 40px 10px 14px;
+        border-radius: 10px;
+        font-family: 'Sora', system-ui, sans-serif;
+        font-size: 14px;
+        cursor: pointer;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+        width: 100%;
+      }
+
+      select:focus, select.form-input:focus {
+        border-color: var(--pink);
+        box-shadow: 0 0 0 2px var(--pink-glow);
+      }
+
+      select option {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        padding: 8px;
+      }
+
+      /* ─── RANGE SLIDER ─── */
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        background: var(--border);
+        border-radius: 3px;
+        outline: none;
+        border: none;
+        padding: 0;
+        margin: 8px 0;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, var(--pink), var(--pink-dark));
+        cursor: pointer;
+        border: 2px solid #ea8ab7;
+        box-shadow: inset 0 1px 2px rgba(255,255,255,0.3), 0 2px 6px var(--pink-glow);
+        transition: transform 0.15s;
+      }
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.15);
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, var(--pink), var(--pink-dark));
+        cursor: pointer;
+        border: 2px solid #ea8ab7;
+        box-shadow: inset 0 1px 2px rgba(255,255,255,0.3), 0 2px 6px var(--pink-glow);
+      }
+
+      /* ─── NUMBER INPUT ARROWS ─── */
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        opacity: 1;
+        height: 28px;
+      }
+
+      /* ─── EMPTY STATE ─── */
+      .empty-state {
+        text-align: center;
+        color: var(--text-secondary);
+        padding: 48px 20px;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      /* ─── RESPONSIVENESS ─── */
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          left: 0;
+          top: 0;
+          height: 100%;
+          z-index: 200;
+          box-shadow: 4px 0 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar.collapsed {
+          width: 0;
+          min-width: 0;
+        }
+
+        .message-bubble {
+          max-width: 85%;
+        }
+
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React, { useEffect, useRef, useState } from "https://esm.sh/react@18.3.1";
+      import { createRoot } from "https://esm.sh/react-dom@18.3.1/client";
+
+      const TABS = [
+        { id: "chat", label: "Chat", icon: "icon-message-square" },
+        { id: "channels", label: "Channels", icon: "icon-radio" },
+        { id: "settings", label: "Settings", icon: "icon-settings" },
+        { id: "cron", label: "Cron", icon: "icon-clock" },
+        { id: "status", label: "Status", icon: "icon-activity" },
+      ];
+
+      const MODEL_CHOICES = {
+        groq: ["openai/gpt-oss-120b","openai/gpt-oss-20b","meta-llama/llama-4-maverick-17b-128e-instruct","groq/compound","groq/compound-mini"],
+        openrouter: ["anthropic/claude-opus-4-1","anthropic/claude-sonnet-4","openai/gpt-4.1","google/gemini-2.5-pro"],
+        anthropic: ["anthropic/claude-opus-4-5","anthropic/claude-sonnet-4"],
+        openai: ["gpt-5.2","gpt-5.2-pro","gpt-5.3-codex","gpt-5.2-codex","gpt-5.1","gpt-5.1-codex","gpt-5 mini","gpt-5 nano","gpt-4.1","gpt-4.1 mini","gpt-4.1 nano","gpt-4o","gpt-4o mini"],
+        deepseek: ["deepseek/deepseek-chat","deepseek/deepseek-reasoner"],
+        gemini: ["gemini/gemini-2.5-pro","gemini/gemini-2.5-flash"],
+        moonshot: ["moonshot/kimi-k2.5"],
+        minimax: ["minimax/MiniMax-M2.1"],
+        dashscope: ["dashscope/qwen-max"],
+        zhipu: ["zai/glm-4.5"],
+        siliconflow: ["openai/deepseek-ai/DeepSeek-R1"],
+        volcengine: ["volcengine/deepseek-r1-250120"],
+        vllm: ["hosted_vllm/llama-3.1-8b-instruct"],
+        custom: ["custom/model-name"],
+      };
+
+      const PROVIDER_LIST = Object.keys(MODEL_CHOICES);
+
+      const API = {
+        status: () => fetch("/api/status").then(r => r.json()),
+        chat: (message) => fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message, session: "web:dashboard" }) }).then(r => r.json()),
+        getConfig: () => fetch("/api/config").then(r => r.json()),
+        saveConfig: (config) => fetch("/api/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(config) }).then(r => r.json()),
+        cronList: () => fetch("/api/cron/jobs?all=1").then(r => r.json()),
+        cronAdd: (payload) => fetch("/api/cron/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }).then(r => r.json()),
+        cronDel: (id) => fetch(`/api/cron/jobs/${id}`, { method: "DELETE" }).then(r => r.json()),
+        cronEnable: (id, enabled) => fetch(`/api/cron/jobs/${id}/enable`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled }) }).then(r => r.json()),
+        cronRun: (id) => fetch(`/api/cron/jobs/${id}/run`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ force: true }) }).then(r => r.json()),
+      };
+
+      function App() {
+        const [currentTab, setCurrentTab] = useState("chat");
+        const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+        return React.createElement("div", { className: "app" },
+          React.createElement("aside", { className: `sidebar ${sidebarCollapsed ? "collapsed" : ""}` },
+            React.createElement("div", { className: "sidebar-header" },
+              React.createElement("div", { className: "sidebar-brand" }, "Pretticlaw"),
+              React.createElement("button", { className: "toggle-btn", onClick: () => setSidebarCollapsed(!sidebarCollapsed) }, "✕"),
+            ),
+            React.createElement("nav", { className: "nav-tabs" },
+              TABS.map(tab =>
+                React.createElement("button", {
+                  key: tab.id,
+                  className: `nav-tab ${currentTab === tab.id ? "active" : ""}`,
+                  onClick: () => setCurrentTab(tab.id),
+                },
+                  React.createElement("i", { className: tab.icon }),
+                  ` ${tab.label}`,
+                )
+              ),
+            ),
+            React.createElement("div", { className: "sidebar-footer" },
+              React.createElement("a", {
+                className: "prettiflow-link",
+                href: "https://prettiflow.tech",
+                target: "_blank",
+                rel: "noopener noreferrer",
+              },
+                React.createElement("img", { src: "https://prettiflow.tech/logo.png", alt: "PrettiFlow" }),
+                "PrettiFlow",
+                React.createElement("i", { className: "icon-external-link", style: { fontSize: "12px", marginLeft: "auto" } }),
+              ),
+            ),
+          ),
+          React.createElement("div", { className: "main-container" },
+            React.createElement("div", { className: "top-bar" },
+              React.createElement("button", { className: "sidebar-toggle", onClick: () => setSidebarCollapsed(!sidebarCollapsed) }, "☰"),
+              React.createElement("div", { className: "top-title" }, TABS.find(t => t.id === currentTab)?.label || "Chat"),
+            ),
+            React.createElement("div", { className: "content-area" },
+              currentTab === "chat" && React.createElement(ChatView),
+              currentTab === "channels" && React.createElement(ChannelsView),
+              currentTab === "settings" && React.createElement(SettingsView),
+              currentTab === "cron" && React.createElement(CronView),
+              currentTab === "status" && React.createElement(StatusView),
+            ),
+          ),
+        );
+      }
+
+      function ToolCallRow({ toolCalls }) {
+        const [expanded, setExpanded] = useState(false);
+        if (!toolCalls || !toolCalls.length) return null;
+        return React.createElement("div", { className: "tool-call-row" },
+          React.createElement("div", {
+            className: `tool-call-header ${expanded ? "expanded" : ""}`,
+            onClick: () => setExpanded(!expanded),
+          },
+            React.createElement("i", { className: "icon-chevron-right" }),
+            React.createElement("i", { className: "icon-wrench", style: { fontSize: "13px" } }),
+            toolCalls.length === 1
+              ? `Tool: ${toolCalls[0].function?.name || toolCalls[0].name}`
+              : `Tools: ${toolCalls.map(tc => tc.function?.name || tc.name).join(", ")}`
+          ),
+          expanded && React.createElement("div", { className: "tool-call-body" },
+            toolCalls.map((tc, i) => {
+              let args = tc.arguments;
+              if (!args && tc.function && typeof tc.function.arguments === "string") {
+                try {
+                  args = JSON.parse(tc.function.arguments);
+                } catch { args = tc.function.arguments; }
+              }
+              return React.createElement("div", { key: i, style: { marginBottom: "10px" } },
+                React.createElement("div", { style: { fontWeight: 600, color: "var(--pink)", marginBottom: 2 } }, `${i + 1}. ${tc.function?.name || tc.name}`),
+                args && typeof args === "object"
+                  ? React.createElement("pre", { style: { background: "#18181c", color: "#ffb3d1", borderRadius: 7, padding: 8, fontSize: "13px", fontFamily: "'JetBrains Mono', monospace", margin: 0 } }, JSON.stringify(args, null, 2))
+                  : args
+                    ? React.createElement("pre", { style: { background: "#18181c", color: "#ffb3d1", borderRadius: 7, padding: 8, fontSize: "13px", fontFamily: "'JetBrains Mono', monospace", margin: 0 } }, String(args))
+                    : tc.input
+                      ? React.createElement("pre", { style: { background: "#18181c", color: "#ffb3d1", borderRadius: 7, padding: 8, fontSize: "13px", fontFamily: "'JetBrains Mono', monospace", margin: 0 } }, String(tc.input))
+                      : null
+              );
+            })
+          ),
+        );
+      }
+
+
+      function ChatView() {
+        const [messages, setMessages] = useState([]);
+        const [input, setInput] = useState("");
+        const [loading, setLoading] = useState(false);
+        const messagesEndRef = useRef(null);
+
+        useEffect(() => {
+          fetch("/api/history")
+            .then(r => r.json())
+            .then(data => {
+              const msgs = (data.messages || []).map(msg => {
+                if (!msg || typeof msg.role !== "string") return null;
+                return {
+                  ...msg,
+                  id: Math.random(),
+                  content: typeof msg.content === "string" ? msg.content : "",
+                };
+              }).filter(Boolean);
+              setMessages(msgs);
+            })
+            .catch(() => {});
+        }, []);
+
+        useEffect(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, [messages, loading]);
+
+        const send = async () => {
+          const text = input.trim();
+          if (!text || loading) return;
+
+          const userMsg = { id: Math.random(), role: "user", content: text };
+          setMessages(prev => [...prev, userMsg]);
+          setInput("");
+          setLoading(true);
+
+          try {
+            const data = await API.chat(text);
+            if (data.error) {
+              setMessages(prev => [...prev, { id: Math.random(), role: "assistant", content: `Error: ${data.error}` }]);
+            } else {
+              if (data.response) {
+                setMessages(prev => [...prev, { id: Math.random(), role: "assistant", content: data.response }]);
+              }
+              if (data.progress && Array.isArray(data.progress)) {
+                data.progress.forEach(p => {
+                  setMessages(prev => [...prev, { id: Math.random(), role: "progress", content: p.content, tool_calls: p.tool_calls }]);
+                });
+              }
+            }
+          } catch (err) {
+            setMessages(prev => [...prev, { id: Math.random(), role: "assistant", content: `Error: ${String(err)}` }]);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        const handleKeyDown = (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            send();
+          }
+        };
+
+        function renderMarkdown(md) {
+          if (!md) return null;
+          const html = window.marked.parse(md, { breaks: true });
+          return React.createElement("div", {
+            className: "markdown-body",
+            dangerouslySetInnerHTML: { __html: html },
+          });
+        }
+
+        return React.createElement("div", { className: "chat-view" },
+          React.createElement("div", { className: "chat-messages" },
+            messages.length === 0 && React.createElement("div", { className: "empty-state" }, "Start a conversation..."),
+            messages.map(msg => {
+              const toolCalls = Array.isArray(msg.tool_calls) ? msg.tool_calls : [];
+              if (toolCalls.length > 0 && !msg.content) {
+                return React.createElement(ToolCallRow, { key: msg.id, toolCalls });
+              }
+              return React.createElement(React.Fragment, { key: msg.id },
+                toolCalls.length > 0 && React.createElement(ToolCallRow, { toolCalls }),
+                React.createElement("div", { className: `message ${msg.role}` },
+                  React.createElement("div", { className: "message-bubble" },
+                    msg.role === "assistant" || msg.role === "agent"
+                      ? renderMarkdown(msg.content)
+                      : msg.content
+                  ),
+                ),
+              );
+            }),
+            loading && React.createElement("div", { className: "message assistant" },
+              React.createElement("div", { className: "message-bubble" },
+                React.createElement("div", { className: "typing-dots" },
+                  React.createElement("div", { className: "typing-dot" }),
+                  React.createElement("div", { className: "typing-dot" }),
+                  React.createElement("div", { className: "typing-dot" }),
+                ),
+              ),
+            ),
+            React.createElement("div", { ref: messagesEndRef }),
+          ),
+          React.createElement("div", { className: "chat-input-area" },
+            React.createElement("div", { className: "input-container" },
+              React.createElement("textarea", {
+                className: "input-field",
+                value: input,
+                onChange: e => setInput(e.target.value),
+                onKeyDown: handleKeyDown,
+                placeholder: "Ask anything... (Shift+Enter for new line)",
+                rows: 1,
+              }),
+              React.createElement("button", { className: "send-btn", onClick: send, disabled: loading }, loading ? "..." : "Send"),
+            ),
+          ),
+        );
+      }
+
+      function ChannelsView() {
+        const [config, setConfig] = useState(null);
+        const [saving, setSaving] = useState(false);
+
+        useEffect(() => {
+          API.getConfig().then(setConfig).catch(() => {});
+        }, []);
+
+        if (!config) return React.createElement("div", { className: "panel" }, "Loading...");
+
+        const save = async () => {
+          setSaving(true);
+          await API.saveConfig(config).catch(() => {});
+          setSaving(false);
+        };
+
+        const c = config.channels;
+
+        return React.createElement("div", { className: "panel" },
+          React.createElement("h2", { className: "panel-title" }, "Channels"),
+          React.createElement("div", { className: "grid-2" },
+            React.createElement("div",
+              { className: "form-group" },
+              React.createElement("label", { className: "checkbox-label" },
+                React.createElement("input", {
+                  type: "checkbox",
+                  checked: c.telegram.enabled || false,
+                  onChange: e => { c.telegram.enabled = e.target.checked; setConfig({ ...config }); }
+                }),
+                "Telegram Enabled"
+              ),
+              React.createElement("input", {
+                className: "form-input",
+                value: c.telegram.token || "",
+                onChange: e => { c.telegram.token = e.target.value; setConfig({ ...config }); },
+                placeholder: "Telegram Bot Token"
+              }),
+            ),
+            React.createElement("div",
+              { className: "form-group" },
+              React.createElement("label", { className: "checkbox-label" },
+                React.createElement("input", {
+                  type: "checkbox",
+                  checked: c.discord.enabled || false,
+                  onChange: e => { c.discord.enabled = e.target.checked; setConfig({ ...config }); }
+                }),
+                "Discord Enabled"
+              ),
+              React.createElement("input", {
+                className: "form-input",
+                value: c.discord.token || "",
+                onChange: e => { c.discord.token = e.target.value; setConfig({ ...config }); },
+                placeholder: "Discord Bot Token"
+              }),
+            ),
+          ),
+          React.createElement("div", { className: "form-group" },
+            React.createElement("button", { className: "btn-primary", onClick: save, disabled: saving }, saving ? "Saving..." : "Save Channels"),
+          ),
+        );
+      }
+
+      function SettingsView() {
+        const [config, setConfig] = useState(null);
+        const [saving, setSaving] = useState(false);
+
+        useEffect(() => {
+          API.getConfig().then(setConfig).catch(() => {});
+        }, []);
+
+        if (!config) return React.createElement("div", { className: "panel" }, "Loading...");
+
+        const save = async () => {
+          setSaving(true);
+          await API.saveConfig(config).catch(() => {});
+          setSaving(false);
+        };
+
+        const d = config.agents.defaults;
+        const currentProvider = d.provider || "openrouter";
+        const models = MODEL_CHOICES[currentProvider] || [];
+
+        const onProviderChange = (e) => {
+          const newProvider = e.target.value;
+          d.provider = newProvider;
+          const newModels = MODEL_CHOICES[newProvider] || [];
+          if (newModels.length && !newModels.includes(d.model)) {
+            d.model = newModels[0];
+          }
+          setConfig({ ...config });
+        };
+
+        return React.createElement("div", { className: "panel" },
+          React.createElement("h2", { className: "panel-title" }, "Settings"),
+          React.createElement("div", { className: "grid-2" },
+            React.createElement("div", { className: "form-group" },
+              React.createElement("label", { className: "form-label" }, "Provider"),
+              React.createElement("select", {
+                className: "form-input",
+                value: currentProvider,
+                onChange: onProviderChange,
+              },
+                PROVIDER_LIST.map(p =>
+                  React.createElement("option", { key: p, value: p }, p.charAt(0).toUpperCase() + p.slice(1))
+                ),
+              ),
+            ),
+            React.createElement("div", { className: "form-group" },
+              React.createElement("label", { className: "form-label" }, "Model"),
+              React.createElement("select", {
+                className: "form-input",
+                value: d.model || "",
+                onChange: e => { d.model = e.target.value; setConfig({ ...config }); },
+              },
+                models.map(m =>
+                  React.createElement("option", { key: m, value: m }, m)
+                ),
+                !models.includes(d.model) && d.model
+                  ? React.createElement("option", { key: d.model, value: d.model }, `${d.model} (custom)`)
+                  : null,
+              ),
+            ),
+          ),
+          React.createElement("div", { className: "grid-2" },
+            React.createElement("div", { className: "form-group" },
+              React.createElement("label", { className: "form-label" }, "Temperature"),
+              React.createElement("input", {
+                className: "form-input",
+                type: "range",
+                min: "0",
+                max: "2",
+                step: "0.1",
+                value: d.temperature || 0,
+                onChange: e => { d.temperature = Number(e.target.value); setConfig({ ...config }); },
+              }),
+              React.createElement("div", { style: { fontSize: "13px", color: "var(--text-secondary)", marginTop: "4px" } }, `Value: ${d.temperature ?? 0}`),
+            ),
+            React.createElement("div", { className: "form-group" },
+              React.createElement("label", { className: "form-label" }, "Max Tokens"),
+              React.createElement("input", {
+                className: "form-input",
+                type: "number",
+                value: d.maxTokens || 0,
+                onChange: e => { d.maxTokens = Number(e.target.value); setConfig({ ...config }); },
+              }),
+            ),
+          ),
+          React.createElement("div", { className: "form-group", style: { marginTop: "8px" } },
+            React.createElement("button", { className: "btn-primary", onClick: save, disabled: saving }, saving ? "Saving..." : "Save Settings"),
+          ),
+        );
+      }
+
+      function CronView() {
+        const [jobs, setJobs] = useState([]);
+        const [name, setName] = useState("");
+        const [message, setMessage] = useState("");
+        const [intervalValue, setIntervalValue] = useState("1");
+        const [intervalUnit, setIntervalUnit] = useState("hours");
+        const [loading, setLoading] = useState(false);
+
+        const UNIT_MULTIPLIERS = { seconds: 1, minutes: 60, hours: 3600, days: 86400 };
+
+        const loadJobs = () => API.cronList().then(setJobs).catch(() => {});
+        useEffect(loadJobs, []);
+
+        const add = async () => {
+          if (!name.trim() || !message.trim()) return;
+          setLoading(true);
+          const totalSeconds = Number(intervalValue) * (UNIT_MULTIPLIERS[intervalUnit] || 1);
+          await API.cronAdd({ name: name.trim(), message: message.trim(), schedule: { kind: "every", everyMs: totalSeconds * 1000 } }).catch(() => {});
+          setName("");
+          setMessage("");
+          setIntervalValue("1");
+          setIntervalUnit("hours");
+          setLoading(false);
+          await loadJobs();
+        };
+
+        const formatInterval = (job) => {
+          if (job.schedule.kind !== "every") return job.schedule.kind;
+          const totalSec = (job.schedule.everyMs || 0) / 1000;
+          if (totalSec >= 86400) return `Every ${(totalSec / 86400).toFixed(totalSec % 86400 === 0 ? 0 : 1)} day${totalSec >= 172800 ? "s" : ""}`;
+          if (totalSec >= 3600) return `Every ${(totalSec / 3600).toFixed(totalSec % 3600 === 0 ? 0 : 1)} hour${totalSec >= 7200 ? "s" : ""}`;
+          if (totalSec >= 60) return `Every ${(totalSec / 60).toFixed(totalSec % 60 === 0 ? 0 : 1)} minute${totalSec >= 120 ? "s" : ""}`;
+          return `Every ${totalSec} second${totalSec !== 1 ? "s" : ""}`;
+        };
+
+        return React.createElement("div", { className: "panel" },
+          React.createElement("h2", { className: "panel-title" }, "Cron Jobs"),
+          React.createElement("div", { className: "form-group" },
+            React.createElement("label", { className: "form-label" }, "Job Name"),
+            React.createElement("input", {
+              className: "form-input",
+              value: name,
+              onChange: e => setName(e.target.value),
+              placeholder: "e.g., Daily Reminder"
+            }),
+          ),
+          React.createElement("div", { className: "form-group" },
+            React.createElement("label", { className: "form-label" }, "Message"),
+            React.createElement("textarea", {
+              className: "form-input",
+              style: { resize: "vertical", minHeight: "80px" },
+              value: message,
+              onChange: e => setMessage(e.target.value),
+              placeholder: "Cron job message"
+            }),
+          ),
+          React.createElement("div", { className: "form-group" },
+            React.createElement("label", { className: "form-label" }, "Run Every"),
+            React.createElement("div", { className: "interval-row" },
+              React.createElement("div", { className: "form-group interval-value" },
+                React.createElement("input", {
+                  className: "form-input",
+                  type: "number",
+                  min: "1",
+                  value: intervalValue,
+                  onChange: e => setIntervalValue(e.target.value),
+                }),
+              ),
+              React.createElement("div", { className: "form-group interval-unit" },
+                React.createElement("select", {
+                  className: "form-input",
+                  value: intervalUnit,
+                  onChange: e => setIntervalUnit(e.target.value),
+                },
+                  React.createElement("option", { value: "seconds" }, "Seconds"),
+                  React.createElement("option", { value: "minutes" }, "Minutes"),
+                  React.createElement("option", { value: "hours" }, "Hours"),
+                  React.createElement("option", { value: "days" }, "Days"),
+                ),
+              ),
+            ),
+          ),
+          React.createElement("div", { className: "form-group" },
+            React.createElement("button", { className: "btn-primary", onClick: add, disabled: loading }, loading ? "Adding..." : "Add Job"),
+          ),
+          React.createElement("div", { className: "divider" }),
+          jobs.length === 0 && React.createElement("div", { className: "empty-state" }, "No scheduled jobs yet"),
+          jobs.map(job =>
+            React.createElement("div", { key: job.id, className: "job-card" },
+              React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" } },
+                React.createElement("div", { className: "job-name" }, job.name),
+                React.createElement("div", { className: "status-indicator" },
+                  React.createElement("div", { className: `status-dot ${job.enabled ? "active" : "inactive"}` }),
+                  React.createElement("span", { style: { fontSize: "12px", color: job.enabled ? "#22c55e" : "#ef4444" } }, job.enabled ? "Active" : "Disabled"),
+                ),
+              ),
+              React.createElement("div", { className: "job-details" }, `${formatInterval(job)} • ID: ${job.id}`),
+              React.createElement("div", { className: "btn-group" },
+                React.createElement("button", {
+                  className: "btn-secondary",
+                  onClick: async () => { await API.cronRun(job.id).catch(() => {}); await loadJobs(); }
+                }, "Run Now"),
+                React.createElement("button", {
+                  className: "btn-secondary",
+                  onClick: async () => { await API.cronEnable(job.id, !job.enabled).catch(() => {}); await loadJobs(); }
+                }, job.enabled ? "Disable" : "Enable"),
+                React.createElement("button", {
+                  className: "btn-secondary",
+                  onClick: async () => { await API.cronDel(job.id).catch(() => {}); await loadJobs(); }
+                }, "Delete"),
+              ),
+            )
+          ),
+        );
+      }
+
+      function StatusView() {
+        const [status, setStatus] = useState(null);
+        const [uptime, setUptime] = useState(0);
+
+        useEffect(() => {
+          API.status().then(setStatus).catch(() => {});
+          const start = Date.now();
+          const timer = setInterval(() => setUptime(Math.floor((Date.now() - start) / 1000)), 1000);
+          return () => clearInterval(timer);
+        }, []);
+
+        const formatUptime = (s) => {
+          const h = Math.floor(s / 3600);
+          const m = Math.floor((s % 3600) / 60);
+          const sec = s % 60;
+          return `${h}h ${m}m ${sec}s`;
+        };
+
+        if (!status) return React.createElement("div", { className: "panel" }, "Loading...");
+
+        const isGatewayUp = !!status.provider;
+        const heartbeatActive = !!(status.gateway?.heartbeat?.enabled);
+
+        return React.createElement("div", { className: "panel" },
+          React.createElement("h2", { className: "panel-title" }, "System Status"),
+          React.createElement("div", { className: "status-banner" },
+            React.createElement("div", { className: "status-banner-left" },
+              React.createElement("div", { className: `status-banner-dot ${isGatewayUp ? "active" : "inactive"}` }),
+              React.createElement("div", null,
+                React.createElement("div", { className: "status-banner-text" }, isGatewayUp ? "Gateway Running" : "Gateway Offline"),
+                React.createElement("div", { className: "status-banner-sub" }, isGatewayUp ? `Uptime: ${formatUptime(uptime)}` : "Unable to reach gateway"),
+              ),
+            ),
+          ),
+          React.createElement("div", { className: "status-grid" },
+            React.createElement("div", { className: "status-card" },
+              React.createElement("div", { className: "status-card-header" },
+                React.createElement("i", { className: "icon-cpu" }),
+                React.createElement("div", { className: "status-card-title" }, "Provider"),
+              ),
+              React.createElement("div", { className: "status-card-value" }, status.provider || "—"),
+            ),
+            React.createElement("div", { className: "status-card" },
+              React.createElement("div", { className: "status-card-header" },
+                React.createElement("i", { className: "icon-brain" }),
+                React.createElement("div", { className: "status-card-title" }, "Model"),
+              ),
+              React.createElement("div", { className: "status-card-value", style: { fontSize: "16px", wordBreak: "break-all" } }, status.model || "—"),
+            ),
+            React.createElement("div", { className: "status-card" },
+              React.createElement("div", { className: "status-card-header" },
+                React.createElement("i", { className: "icon-clock" }),
+                React.createElement("div", { className: "status-card-title" }, "Cron Jobs"),
+              ),
+              React.createElement("div", { className: "status-card-value" }, String(status.cron?.jobs ?? 0)),
+            ),
+            React.createElement("div", { className: "status-card" },
+              React.createElement("div", { className: "status-card-header" },
+                React.createElement("i", { className: "icon-heart-pulse" }),
+                React.createElement("div", { className: "status-card-title" }, "Heartbeat"),
+              ),
+              React.createElement("div", { className: "status-indicator" },
+                React.createElement("div", { className: `status-dot ${heartbeatActive ? "active" : "inactive"}` }),
+                React.createElement("span", { style: { color: heartbeatActive ? "#22c55e" : "#ef4444" } }, heartbeatActive ? "Active" : "Inactive"),
+              ),
+            ),
+          ),
+        );
+      }
+
+      createRoot(document.getElementById("root")).render(React.createElement(App));
+    </script>
+  </body>
+</html>

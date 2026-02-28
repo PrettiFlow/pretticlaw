@@ -1,0 +1,37 @@
+{
+  "name": "pretticlaw",
+  "version": "0.1.0",
+  "description": "Lightweight AI Assistant That Lives in Your Computer",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "pretticlaw": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-assets.mjs",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "cron-parser": "^4.9.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "nanoid": "^5.0.7",
+    "openai": "^4.62.1",
+    "prompts": "^2.4.2",
+    "ws": "^8.18.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "@types/prompts": "^2.4.9",
+    "@types/express": "^4.17.21",
+    "@types/ws": "^8.5.14",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2"
+  }
+}
